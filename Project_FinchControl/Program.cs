@@ -255,6 +255,12 @@ namespace Project_FinchControl
 
             DisplayMenuPrompt("Main Menu");
 
+            //
+            // reset finch robot
+            //
+            finchRobot.setLED(0, 0, 0);
+            finchRobot.noteOff();
+
             return robotConnected;
         }
 
