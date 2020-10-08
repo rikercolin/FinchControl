@@ -83,7 +83,7 @@ namespace Project_FinchControl
                         break;
 
                     case "b":
-                        DisplayTalentShowMenuScreen(finchRobot);
+                        TalentShowDisplayMenuScreen(finchRobot);
                         break;
 
                     case "c":
@@ -124,7 +124,7 @@ namespace Project_FinchControl
         /// *                     Talent Show Menu                          *
         /// *****************************************************************
         /// </summary>
-        static void DisplayTalentShowMenuScreen(Finch myFinch)
+        static void TalentShowDisplayMenuScreen(Finch finchRobot)
         {
             Console.CursorVisible = true;
 
@@ -152,7 +152,7 @@ namespace Project_FinchControl
                 switch (menuChoice)
                 {
                     case "a":
-                        DisplayLightAndSound(myFinch);
+                        TalentShowDisplayLightAndSound(finchRobot);
                         break;
 
                     case "b":
@@ -187,7 +187,7 @@ namespace Project_FinchControl
         /// *****************************************************************
         /// </summary>
         /// <param name="finchRobot">finch robot object</param>
-        static void DisplayLightAndSound(Finch finchRobot)
+        static void TalentShowDisplayLightAndSound(Finch finchRobot)
         {
             Console.CursorVisible = false;
 
