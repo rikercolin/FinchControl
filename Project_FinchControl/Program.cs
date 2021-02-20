@@ -152,10 +152,10 @@ namespace Project_FinchControl
                 //
                 // get user menu choice
                 //
-                Console.WriteLine("\ta) Light and Sound");
-                Console.WriteLine("\tb) Dance");
-                Console.WriteLine("\tc) Mixing It Up");
-                Console.WriteLine("\tq) Main Menu");
+                Console.WriteLine("\t1) Light and Sound");
+                Console.WriteLine("\t2) Dance");
+                Console.WriteLine("\t3) Mixing It Up");
+                Console.WriteLine("\t4) Main Menu");
                 Console.Write("\t\tEnter Choice:");
                 goodinput = int.TryParse(Console.ReadLine(), out menuChoice);
 
@@ -196,13 +196,13 @@ namespace Project_FinchControl
             DisplayScreenHeader("Dance Mode");
             
             finchRobot.setMotors(30, 30);
-            finchRobot.wait(100);
+            finchRobot.wait(1000);
             finchRobot.setMotors(30, -30);
-            finchRobot.wait(100);
+            finchRobot.wait(1000);
             finchRobot.setMotors(-30, 30);
-            finchRobot.wait(100);
+            finchRobot.wait(1000);
             finchRobot.setMotors(-30, -30);
-            finchRobot.wait(100);
+            finchRobot.wait(1000);
             finchRobot.setMotors(0, 0);
 
 
@@ -296,6 +296,9 @@ namespace Project_FinchControl
                 finchRobot.setLED(lightSoundLevel, lightSoundLevel, lightSoundLevel);
                 finchRobot.noteOn(lightSoundLevel * 100);
             }
+
+            finchRobot.setLED(0, 0, 0);
+            finchRobot.noteOff();
 
             DisplayMenuPrompt("Talent Show Menu");
         }
