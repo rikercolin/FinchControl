@@ -18,6 +18,19 @@ namespace Project_FinchControl
     //
     // **************************************************
 
+
+    public struct Notes
+    {
+        public const double C4 = 261.63;
+        public const double D4 = 293.66;
+        public const double E4 = 329.63;
+        public const double F4 = 349.23;
+        public const double G4 = 392.00;
+        public const double A4 = 440.00;
+        public const double B4f = 466.16;
+        public const double B4 = 493.88;
+        public const double C5 = 523.25;
+    }
     class Program
     {
         /// <summary>
@@ -87,15 +100,15 @@ namespace Project_FinchControl
                         break;
 
                     case "c":
-
+                        DataRecorderDisplayMenuScreen(finchRobot);
                         break;
 
                     case "d":
-
+                        AlarmSystemDisplayMenuScreen(finchRobot);
                         break;
 
                     case "e":
-
+                        UserProgrammingDisplayMenuScreen(finchRobot);
                         break;
 
                     case "f":
@@ -129,7 +142,8 @@ namespace Project_FinchControl
             Console.CursorVisible = true;
 
             bool quitTalentShowMenu = false;
-            string menuChoice;
+            int menuChoice;
+            bool goodinput;
 
             do
             {
@@ -139,35 +153,31 @@ namespace Project_FinchControl
                 // get user menu choice
                 //
                 Console.WriteLine("\ta) Light and Sound");
-                Console.WriteLine("\tb) ");
-                Console.WriteLine("\tc) ");
-                Console.WriteLine("\td) ");
+                Console.WriteLine("\tb) Dance");
+                Console.WriteLine("\tc) Mixing It Up");
                 Console.WriteLine("\tq) Main Menu");
                 Console.Write("\t\tEnter Choice:");
-                menuChoice = Console.ReadLine().ToLower();
+                goodinput = int.TryParse(Console.ReadLine(), out menuChoice);
 
+                if (!goodinput) menuChoice = -1;
                 //
                 // process user menu choice
                 //
                 switch (menuChoice)
                 {
-                    case "a":
+                    case 1:
                         TalentShowDisplayLightAndSound(finchRobot);
                         break;
 
-                    case "b":
-
+                    case 2:
+                        TalentShowDisplayDance(finchRobot);
                         break;
 
-                    case "c":
-
+                    case 3:
+                        TalentShowDisplayMixingItUp(finchRobot);
                         break;
 
-                    case "d":
-
-                        break;
-
-                    case "q":
+                    case 4:
                         quitTalentShowMenu = true;
                         break;
 
@@ -179,6 +189,91 @@ namespace Project_FinchControl
                 }
 
             } while (!quitTalentShowMenu);
+        }
+
+        static void TalentShowDisplayDance(Finch finchRobot)
+        {
+            DisplayScreenHeader("Dance Mode");
+            
+            finchRobot.setMotors(30, 30);
+            finchRobot.wait(100);
+            finchRobot.setMotors(30, -30);
+            finchRobot.wait(100);
+            finchRobot.setMotors(-30, 30);
+            finchRobot.wait(100);
+            finchRobot.setMotors(-30, -30);
+            finchRobot.wait(100);
+            finchRobot.setMotors(0, 0);
+
+
+            DisplayMenuPrompt("Talent Show Menu");
+        }
+
+        static void TalentShowDisplayMixingItUp(Finch finchRobot)
+        {
+            DisplayScreenHeader("Mixing it up!");
+            finchRobot.setMotors(63, -63); //Get the robot spinning in a circle
+            int tempo = CalculateTempo(100); // Millie seconds per note;
+
+            //Happy Birthday rather awkardly out of tune...
+            finchRobot.setLED(255, 0, 0);
+            playNote(finchRobot, tempo, Notes.C4);
+            playNote(finchRobot, tempo*2, Notes.C4);
+
+            finchRobot.setLED(0, 255, 0);
+            playNote(finchRobot, tempo, Notes.D4);
+            playNote(finchRobot, tempo, Notes.C4);
+            playNote(finchRobot, tempo, Notes.F4);
+
+            finchRobot.setLED(0, 0, 255);
+            playNote(finchRobot, tempo, Notes.E4);
+            playNote(finchRobot, tempo, Notes.C4);
+            playNote(finchRobot, tempo, Notes.C4);
+
+            finchRobot.setLED(255, 0, 0);
+            playNote(finchRobot, tempo, Notes.D4);
+            playNote(finchRobot, tempo, Notes.C4);
+            playNote(finchRobot, tempo, Notes.G4);
+
+            finchRobot.setLED(0, 255, 0);
+            playNote(finchRobot, tempo, Notes.F4);
+            playNote(finchRobot, tempo, Notes.C4);
+            playNote(finchRobot, tempo, Notes.C4);
+
+            finchRobot.setLED(0, 0, 255);
+            playNote(finchRobot, tempo, Notes.C5);
+            playNote(finchRobot, tempo, Notes.A4);
+            playNote(finchRobot, tempo, Notes.F4);
+
+            finchRobot.setLED(255, 0, 0);
+            playNote(finchRobot, tempo, Notes.E4);
+            playNote(finchRobot, tempo, Notes.D4);
+            playNote(finchRobot, tempo, Notes.B4f);
+            playNote(finchRobot, tempo, Notes.B4f);
+
+            finchRobot.setLED(0, 255, 0);
+            playNote(finchRobot, tempo, Notes.A4);
+            playNote(finchRobot, tempo, Notes.F4);
+            playNote(finchRobot, tempo, Notes.G4);
+
+            finchRobot.setLED(0, 0, 255);
+            playNote(finchRobot, tempo*3, Notes.F4);
+
+            finchRobot.setLED(0, 0, 0);
+            finchRobot.noteOff();
+            finchRobot.setMotors(0, 0);
+            DisplayMenuPrompt("Talent Show Menu");
+        }
+
+        static void playNote(Finch finchRobot, int tempo, double note)
+        {
+            finchRobot.noteOn((int)note);
+            finchRobot.wait(tempo);
+        }
+
+        static int CalculateTempo(int bmp)
+        {
+            return 60 / bmp * 1000;
         }
 
         /// <summary>
@@ -193,7 +288,7 @@ namespace Project_FinchControl
 
             DisplayScreenHeader("Light and Sound");
 
-            Console.WriteLine("\tThe Finch robot will not show off its glowing talent!");
+            Console.WriteLine("\tThe Finch robot will now show off its glowing talent!");
             DisplayContinuePrompt();
 
             for (int lightSoundLevel = 0; lightSoundLevel < 255; lightSoundLevel++)
@@ -205,6 +300,33 @@ namespace Project_FinchControl
             DisplayMenuPrompt("Talent Show Menu");
         }
 
+        #endregion
+
+        #region DATA RECORDER
+        static void DataRecorderDisplayMenuScreen(Finch finchrobot)
+        {
+            DisplayScreenHeader("Data Recorder");
+            Console.WriteLine("This is under development check back soon!");
+            DisplayContinuePrompt();
+        }
+        #endregion
+
+        #region ALARM SYSTEM
+        static void AlarmSystemDisplayMenuScreen(Finch finchrobot)
+        {
+            DisplayScreenHeader("Alarm System");
+            Console.WriteLine("This is under development check back soon!");
+            DisplayContinuePrompt();
+        }
+        #endregion
+
+        #region USER PROGRAMMING
+        static void UserProgrammingDisplayMenuScreen(Finch finchrobot)
+        {
+            DisplayScreenHeader("User Programming");
+            Console.WriteLine("This is under development check back soon!");
+            DisplayContinuePrompt();
+        }
         #endregion
 
         #region FINCH ROBOT MANAGEMENT
@@ -250,7 +372,7 @@ namespace Project_FinchControl
             DisplayContinuePrompt();
 
             robotConnected = finchRobot.connect();
-
+            if (robotConnected == false) Console.WriteLine("ERROR CONNECTING ROBOT!");
             // TODO test connection and provide user feedback - text, lights, sounds
 
             DisplayMenuPrompt("Main Menu");
