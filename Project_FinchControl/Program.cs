@@ -578,8 +578,8 @@ namespace Project_FinchControl
                 Console.WriteLine("What kind of data do you want to collect?");
                 Console.WriteLine("\ta) Temperature sensor");
                 Console.WriteLine("\tb) Light sensor, left side");
-                Console.WriteLine("\tb) Light sensor, right side");
-                Console.WriteLine("\tb) Light sensor, avg of both sides");
+                Console.WriteLine("\tc) Light sensor, right side");
+                Console.WriteLine("\td) Light sensor, avg of both sides");
 
                 menuChoice = Console.ReadLine().ToLower();
 
@@ -703,13 +703,13 @@ namespace Project_FinchControl
                             AlarmTrigger();
                             return;
                         } 
-                        else if(finchrobot.getTemperature() < treshhold) //Min & temp is less than treshold
+                        else if(!isMax && finchrobot.getTemperature() < treshhold) //Min & temp is less than treshold
                         {
                             AlarmTrigger();
                             return;
                         }
 
-                        fixdisplay(finchrobot.getTemperature().ToString());
+                        FixDisplay(finchrobot.getTemperature().ToString());
                         break;
 
                     case "left":
@@ -718,12 +718,12 @@ namespace Project_FinchControl
                             AlarmTrigger();
                             return;
                         }
-                        else if (finchrobot.getLeftLightSensor() < treshhold) //Min & left light is less than treshold
+                        else if (!isMax && finchrobot.getLeftLightSensor() < treshhold) //Min & left light is less than treshold
                         {
                             AlarmTrigger();
                             return;
                         }
-                        fixdisplay(finchrobot.getLeftLightSensor().ToString());
+                        FixDisplay(finchrobot.getLeftLightSensor().ToString());
                         break;
 
                     case "right":
@@ -732,12 +732,12 @@ namespace Project_FinchControl
                             AlarmTrigger();
                             return;
                         }
-                        else if (finchrobot.getRightLightSensor() < treshhold) //Min & left right is less than treshold
+                        else if (!isMax && finchrobot.getRightLightSensor() < treshhold) //Min & left right is less than treshold
                         {
                             AlarmTrigger();
                             return;
                         }
-                        fixdisplay(finchrobot.getRightLightSensor().ToString());
+                        FixDisplay(finchrobot.getRightLightSensor().ToString());
                         break;
 
                     case "both":
@@ -746,12 +746,12 @@ namespace Project_FinchControl
                             AlarmTrigger();
                             return;
                         }
-                        else if (AvgTempSensors(finchrobot) < treshhold) //Min & both light is less than treshold
+                        else if (!isMax && AvgTempSensors(finchrobot) < treshhold) //Min & both light is less than treshold
                         {
                             AlarmTrigger();
                             return;
                         }
-                        fixdisplay(AvgTempSensors(finchrobot).ToString());
+                        FixDisplay(AvgTempSensors(finchrobot).ToString());
                         break;
 
                     default:
@@ -812,7 +812,7 @@ namespace Project_FinchControl
             return (finchrobot.getLeftLightSensor() + finchrobot.getRightLightSensor()) / 2;
         }
 
-        static void fixdisplay(string data)
+        static void FixDisplay(string data)
         {
             int currentleftPosition = Console.CursorLeft;
             int currenttopPosition = Console.CursorTop;
