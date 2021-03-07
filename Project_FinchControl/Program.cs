@@ -308,9 +308,190 @@ namespace Project_FinchControl
         #region DATA RECORDER
         static void DataRecorderDisplayMenuScreen(Finch finchrobot)
         {
+            bool quitDataRecorderMenu = false;
+            string menuChoice;
+
+            bool lightsensor = false;
+            int numberOfDataPoints = 0;
+            double dataPointFrequency = 0.0;
+            double[] data = { };
+  
+
+            do
+            {
+                DisplayScreenHeader("Talent Show Menu");
+
+                //
+                // get user menu choice
+                //
+                Console.WriteLine("\ta) Change sensor (temp/light)");
+                Console.WriteLine("\tb) Change # of data points");
+                Console.WriteLine("\tc) Change frequency of data points");
+                Console.WriteLine("\td) Get data");
+                Console.WriteLine("\te) Show data");
+                Console.WriteLine("\tf) return to main menu");
+                Console.Write("\t\tEnter Choice:");
+                menuChoice = Console.ReadLine().ToLower();
+
+              
+                //
+                // process user menu choice
+                //
+                switch (menuChoice)
+                {
+                    case "a":
+                        lightsensor = DataRecorderSensorSelection();
+                        break;
+                    case "b":
+                        numberOfDataPoints = DataRecorderDisplayGetNumberOfDataPoints();
+                        break;
+
+                    case "c":
+                        dataPointFrequency = DataRecorderDisplayGetDataPointFrequence();
+                        break;
+
+                    case "d":
+                        data = DataRecorderDisplayGetData(numberOfDataPoints, dataPointFrequency, lightsensor, finchrobot);
+                        break;
+
+                    case "e":
+                        DataRecorderDisplayData(data);
+                        break;
+
+                    case "f":
+                        quitDataRecorderMenu = true;
+                        break;
+
+                    default:
+                        Console.WriteLine();
+                        Console.WriteLine("\tPlease enter a letter for the menu choice.");
+                        DisplayContinuePrompt();
+                        break;
+                }
+
+            } while (!quitDataRecorderMenu);
+        }
+
+        static bool DataRecorderSensorSelection()
+        {
+            string menuChoice;
+            bool goodinput = false;
+            bool lightsensor = false;
+            do
+            {
+                DisplayScreenHeader("Data Recorder");
+                Console.WriteLine("What kind of data do you want to collect?");
+                Console.WriteLine("\ta) Temperature");
+                Console.WriteLine("\tb) Light");
+
+                menuChoice = Console.ReadLine().ToLower();
+
+                switch(menuChoice)
+                {
+                    case "a": 
+                        lightsensor = false;
+                        goodinput = true;
+                        break;
+                    case "b":
+                        lightsensor = true;
+                        goodinput = true;
+                        break;
+                    default:
+                        Console.WriteLine();
+                        Console.WriteLine("\tPlease enter a letter for the menu choice.");
+                        DisplayContinuePrompt();
+                        break;
+                }
+            } while (!goodinput);
+
+            return lightsensor;
+        }
+
+        static int DataRecorderDisplayGetNumberOfDataPoints()
+        {
             DisplayScreenHeader("Data Recorder");
-            Console.WriteLine("This is under development check back soon!");
+
+            Console.WriteLine("Please enter the number of samples you want");
+            bool goodinput = false;
+            int amount;
+            
+            do
+            {
+                goodinput = int.TryParse(Console.ReadLine(), out amount);
+                if (!goodinput) Console.WriteLine("That's not a number try again!");
+            } 
+            while (!goodinput);
+            
             DisplayContinuePrompt();
+            return amount;
+        }
+
+        static double DataRecorderDisplayGetDataPointFrequence()
+        {
+            DisplayScreenHeader("Data Recorder");
+
+            Console.WriteLine("Please enter the rate of sampling in seconds");
+            bool goodinput = false;
+            int frequency;
+
+            do
+            {
+                goodinput = int.TryParse(Console.ReadLine(), out frequency);
+                if (!goodinput) Console.WriteLine("That's not a number try again!");
+            }
+            while (!goodinput);
+
+            DisplayContinuePrompt();
+            return frequency;
+        }
+
+        static double[] DataRecorderDisplayGetData(int numberOfDataPoints, double dataPointFrequency,bool lightsensor ,Finch finchrobot)
+        {
+            DisplayScreenHeader("Data Recorder");
+            double[] data = new double[numberOfDataPoints];
+
+            string sensortype = "temperature";
+            if (lightsensor) sensortype = "light level";
+            Console.WriteLine("Data Recorder will be checking the {0}, at a rate of {2}, for a total number of {1} samples", sensortype, numberOfDataPoints, dataPointFrequency);
+            Console.WriteLine("The application is ready to begin,");
+            DisplayContinuePrompt();
+
+            for(int i = 0; i < numberOfDataPoints; i++)
+            {
+                if (lightsensor) {
+                    data[i] = (finchrobot.getLeftLightSensor() + finchrobot.getRightLightSensor()) / 2; //Avg of light sensors
+                }
+                else {
+                    data[i] = ConvertCToF(finchrobot.getTemperature()); //Get temp convert to F
+                }
+                finchrobot.wait((int)(dataPointFrequency * 1000.0)); //Take decimal seconds turn them into ms and drop any fractional ms
+            }
+
+            Console.WriteLine("Data collection is complete");
+            DisplayContinuePrompt();
+            return data;
+        }
+
+        static void DataRecorderDisplayDataTable(double[] data)
+        {
+            int i = 0;
+            Console.WriteLine("{0,-12} | {1, -10}", "Datapoint #", "Mesurement");
+            foreach(double datapoint in data){
+                i++;
+                Console.WriteLine("{0, -12} | {1, -10}", i, datapoint);
+            }
+        }
+
+        static void DataRecorderDisplayData(double[] data)
+        {
+            DisplayScreenHeader("Data Recorder");
+            DataRecorderDisplayDataTable(data);
+            DisplayContinuePrompt();
+        }
+
+        static double ConvertCToF(double celsius)
+        {
+            return (celsius * 1.8) + 32; //Credit http://www.srhartley.com/celsius-to-fahrenheit/formula/
         }
         #endregion
 
