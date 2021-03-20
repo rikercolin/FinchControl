@@ -19,6 +19,24 @@ namespace Project_FinchControl
     // **************************************************
 
 
+    public enum Command
+    {
+        MOVEFORWARD,
+        MOVEBACKWARD,
+        STOPMOTORS,
+        WAIT,
+        SOUND,
+        SOUNDOFF,
+        PARTY,
+        PARTYOFF,
+        TURNRIGHT,
+        TURNLEFT,
+        LEDON,
+        LEDOFF,
+        GETTEMPERATURE,
+        GETLIGHTVALUE,
+        DONE
+    }
     public struct Notes
     {
         public const double C4 = 261.63;
@@ -823,11 +841,196 @@ namespace Project_FinchControl
         #endregion
 
         #region USER PROGRAMMING
-        static void UserProgrammingDisplayMenuScreen(Finch finchrobot)
+        static void UserProgrammingDisplayMenuScreen(Finch finchRobot)
+        {
+
+            var commandlist = new List<Command>();
+            var commandParameters = new Tuple<int, Tuple<int, int, int>, int, int>(0, new Tuple<int, int, int>(0,0,0), 0, 0); //Motorspeed, Light values, Wait time, SOUND freq
+
+            int menuChoice;
+            bool goodinput;
+            bool quit = false;
+            do
+            {
+                DisplayScreenHeader("Talent Show Menu");
+
+                //
+                // get user menu choice
+                //
+                Console.WriteLine("\t1) Set Command Parameters");
+                Console.WriteLine("\t2) Add Commands");
+                Console.WriteLine("\t3) View Commands");
+                Console.WriteLine("\t4) Execute Commands");
+                Console.WriteLine("\t5) Return to Main Menu");
+                Console.Write("\t\tEnter Choice:");
+                goodinput = int.TryParse(Console.ReadLine(), out menuChoice);
+
+                if (!goodinput) menuChoice = -1;
+                //
+                // process user menu choice
+                //
+                switch (menuChoice)
+                {
+                    case 1:
+                        commandParameters = UserProgrammingSetCommandParameters();
+                        break;
+
+                    case 2:
+                        commandlist = UserProgrammingSetCommandList();
+                        break;
+
+                    case 3:
+                        UserProgrammingCommands(commandlist);
+                        break;
+
+                    case 4:
+                        UserProgrammingExcute(commandlist, commandParameters, finchRobot);
+                        break;
+
+                    case 5:
+                        quit = true;
+                        break;
+
+                    default:
+                        Console.WriteLine();
+                        Console.WriteLine("\tPlease enter a number for the menu choice.");
+                        DisplayContinuePrompt();
+                        break;
+                }
+            } while (!quit);
+        }
+
+        static Tuple<int,Tuple<int, int, int>,int ,int> UserProgrammingSetCommandParameters()
+        {
+            
+
+            DisplayScreenHeader("User Programming");
+            int motorspeed = IntParseWithBounds("Motorspeed", -255, 255);
+            Tuple<int, int, int> ledcolorvalues = new Tuple<int, int, int>(IntParseWithBounds("Led Red Brightness", -255, 255), IntParseWithBounds("Led Green Brightness", -255, 255), (IntParseWithBounds("Led Blue Brightness", -255, 255)));
+            int waittime = IntParseWithBounds("Wait time in seconds", 0, 60);
+            int soundfreq = IntParseWithBounds("Sound Frequency in hertz", 0, 20000);
+
+            return new Tuple<int, Tuple<int, int, int>, int, int>(motorspeed, ledcolorvalues, waittime, soundfreq);
+        }
+
+        static List<Command> UserProgrammingSetCommandList()
+        {
+            List<Command> commandlist = new List<Command>();
+            Command currentCommand;
+            bool validinput;
+            bool done = false;
+
+            DisplayScreenHeader("User Programming");
+            Console.WriteLine("Available Commands:");
+            foreach(Command c in Enum.GetValues(typeof(Command)))
+            {
+                Console.Write("{0}, ", c.ToString());
+            }
+            Console.WriteLine();
+
+            do
+            {
+                Console.WriteLine("Enter a command or enter done to finish");
+                validinput = Enum.TryParse<Command>(Console.ReadLine().ToUpper(), out currentCommand);
+                if (!validinput) Console.WriteLine("That's not one of the commands try again!");
+
+                commandlist.Add(currentCommand);
+
+                if (currentCommand == Command.DONE) done = true;
+            } while (!done);
+
+
+            UserProgrammingCommands(commandlist); //Echo results
+            return commandlist;
+        }
+
+        public static void UserProgrammingCommands(List<Command> commandlist)
         {
             DisplayScreenHeader("User Programming");
-            Console.WriteLine("This is under development check back soon!");
+            Console.WriteLine("Here is your program!");
+            foreach (Command c in commandlist)
+            {
+                Console.WriteLine("{0},", c.ToString().ToLower());
+            }
             DisplayContinuePrompt();
+        }
+
+
+        public static void UserProgrammingExcute(List<Command> commandlist, Tuple<int, Tuple<int, int, int>, int, int> commandparameters, Finch finchrobot) //speed, led, wait, sound
+        {
+            foreach (Command command in commandlist)
+            {
+                switch (command)
+                {
+                    case Command.SOUND:
+                        finchrobot.noteOn(commandparameters.Item4);
+                        break;
+                    case Command.SOUNDOFF:
+                        break;
+                    case Command.PARTY:
+                        finchrobot.setMotors(commandparameters.Item1, -commandparameters.Item1);
+                        finchrobot.setLED(commandparameters.Item2.Item1, commandparameters.Item2.Item2, commandparameters.Item2.Item3);
+                        finchrobot.noteOn(commandparameters.Item4);
+                        break;
+                    case Command.PARTYOFF:
+                        finchrobot.setLED(0, 0, 0);
+                        finchrobot.setMotors(0, 0);
+                        finchrobot.noteOff();
+                        break;
+                    case Command.GETLIGHTVALUE:
+                        Console.WriteLine("Average light level across sensors: {0}", AvgTempSensors(finchrobot));
+                        break;
+                    case Command.MOVEFORWARD:
+                        finchrobot.setMotors(commandparameters.Item1, commandparameters.Item1);
+                        break;
+                    case Command.MOVEBACKWARD:
+                        finchrobot.setMotors(-commandparameters.Item1, -commandparameters.Item1);
+                        break;
+                    case Command.STOPMOTORS:
+                        finchrobot.setMotors(0, 0);
+                        break;
+                    case Command.WAIT:
+                        finchrobot.wait(commandparameters.Item3);
+                        break;
+                    case Command.TURNRIGHT:
+                        finchrobot.setMotors(-commandparameters.Item1, -commandparameters.Item1);
+                        break;
+                    case Command.TURNLEFT:
+                        finchrobot.setMotors(-commandparameters.Item1, -commandparameters.Item1);
+                        break;
+                    case Command.LEDON:
+                        finchrobot.setLED(commandparameters.Item2.Item1, commandparameters.Item2.Item2, commandparameters.Item2.Item3);
+                        break;
+                    case Command.LEDOFF:
+                        finchrobot.setLED(0, 0, 0);
+                        break;
+                    case Command.GETTEMPERATURE:
+                        Console.WriteLine("Current Temperature: {0}", finchrobot.getTemperature());
+                        break;
+                    case Command.DONE:
+                        finchrobot.setLED(0, 0, 0);
+                        finchrobot.setMotors(0, 0);
+                        finchrobot.noteOff();
+                        Console.WriteLine("Program Done!");
+                        break;
+                }
+            }
+
+            DisplayContinuePrompt();
+        }
+
+        public static int IntParseWithBounds(string parametername,int lowerbound, int upperbound)
+        {
+            int input;
+            bool validinput;
+            do
+            {
+                Console.WriteLine("Enter a whole number for the {2} ({0} to {1})", lowerbound, upperbound, parametername);
+                validinput = int.TryParse(Console.ReadLine(), out input);
+                if (input < lowerbound || input > upperbound) validinput = false;
+                if (!validinput) Console.WriteLine("That's not a valid input, try again.");
+            } while (!validinput);
+            return input;
         }
         #endregion
 
