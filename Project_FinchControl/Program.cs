@@ -14,7 +14,7 @@ namespace Project_FinchControl
     // Application Type: Console
     // Author: Riker, Colin
     // Dated Created: 2/20/2021
-    // Last Modified: 1/25/2020
+    // Last Modified: 3/27/2021
     //
     // **************************************************
 
@@ -57,10 +57,10 @@ namespace Project_FinchControl
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            SetTheme();
+            var themeManager = new ThemeManager();
 
             DisplayWelcomeScreen();
-            DisplayMenuScreen();
+            DisplayMenuScreen(themeManager);
             DisplayClosingScreen();
         }
 
@@ -78,7 +78,7 @@ namespace Project_FinchControl
         /// *                     Main Menu                                 *
         /// *****************************************************************
         /// </summary>
-        static void DisplayMenuScreen()
+        static void DisplayMenuScreen(ThemeManager thememanager)
         {
             Console.CursorVisible = true;
 
@@ -94,12 +94,13 @@ namespace Project_FinchControl
                 //
                 // get user menu choice
                 //
-                Console.WriteLine("\ta) Connect Finch Robot");
-                Console.WriteLine("\tb) Talent Show");
-                Console.WriteLine("\tc) Data Recorder");
-                Console.WriteLine("\td) Alarm System");
-                Console.WriteLine("\te) User Programming");
-                Console.WriteLine("\tf) Disconnect Finch Robot");
+                Console.WriteLine("\ta) Change Application Theme");
+                Console.WriteLine("\tb) Connect Finch Robot");
+                Console.WriteLine("\tc) Talent Show");
+                Console.WriteLine("\td) Data Recorder");
+                Console.WriteLine("\te) Alarm System");
+                Console.WriteLine("\tf) User Programming");
+                Console.WriteLine("\tg) Disconnect Finch Robot");
                 Console.WriteLine("\tq) Quit");
                 Console.Write("\t\tEnter Choice:");
                 menuChoice = Console.ReadLine().ToLower();
@@ -110,26 +111,29 @@ namespace Project_FinchControl
                 switch (menuChoice)
                 {
                     case "a":
+                        ThemeDisplayMenu(thememanager);
+                        break;
+                    case "b":
                         DisplayConnectFinchRobot(finchRobot);
                         break;
 
-                    case "b":
+                    case "c":
                         TalentShowDisplayMenuScreen(finchRobot);
                         break;
 
-                    case "c":
+                    case "d":
                         DataRecorderDisplayMenuScreen(finchRobot);
                         break;
 
-                    case "d":
+                    case "e":
                         AlarmSystemDisplayMenuScreen(finchRobot);
                         break;
 
-                    case "e":
+                    case "f":
                         UserProgrammingDisplayMenuScreen(finchRobot);
                         break;
 
-                    case "f":
+                    case "g":
                         DisplayDisconnectFinchRobot(finchRobot);
                         break;
 
@@ -1093,6 +1097,205 @@ namespace Project_FinchControl
 
         #endregion
 
+        #region THEME
+
+        static void ThemeDisplayMenu(ThemeManager thememanager)
+        {
+            int menuChoice;
+            bool goodinput;
+            bool quit = false;
+            do
+            {
+                DisplayScreenHeader("Theme Manager Menu");
+
+                //
+                // get user menu choice
+                //
+                Console.WriteLine("\t1) List avalible themes");
+                Console.WriteLine("\t2) Switch Active theme");
+                Console.WriteLine("\t3) Create a new theme");
+                Console.WriteLine("\t4) Edit an existing theme");
+                Console.WriteLine("\t5) Return to Main Menu");
+                Console.Write("\t\tEnter Choice:");
+                goodinput = int.TryParse(Console.ReadLine(), out menuChoice);
+
+                if (!goodinput) menuChoice = -1;
+                //
+                // process user menu choice
+                //
+                switch (menuChoice)
+                {
+                    case 1:
+                        ThemeDisplayThemeList(thememanager);
+                        break;
+                    case 2:
+                        ThemeDisplaySwitchTheme(thememanager);
+                        break;
+                    case 3:
+                        ThemeDisplayCreateTheme(thememanager);
+                        break;
+                    case 4:
+                        ThemeDisplayEditTheme(thememanager);
+                        break;
+                    case 5:
+                        quit = true;
+                        break;
+
+                    default:
+                        Console.WriteLine();
+                        Console.WriteLine("\tPlease enter a number for the menu choice.");
+                        DisplayContinuePrompt();
+                        break;
+                }
+            } while (!quit);
+        }
+
+        static void ThemeDisplayThemeList(ThemeManager thememanager)
+        {
+            DisplayScreenHeader("Theme Manager");
+            ThemeDisplayListTable(thememanager);
+            DisplayContinuePrompt();
+        }
+
+        static void ThemeDisplaySwitchTheme(ThemeManager thememanager)
+        {
+            string input;
+            bool goodinput = false;
+
+
+            DisplayScreenHeader("Theme Manager");
+            ThemeDisplayListTable(thememanager);
+
+            do
+            {
+                Console.WriteLine("\nEnter the name of one of the above themes:");
+                input = Console.ReadLine();
+
+                foreach(Theme theme in thememanager.GetThemesList())
+                {
+                    if (theme.Name == input)
+                    {
+                        thememanager.SetTheme(theme);
+                        goodinput = true;
+                        break;
+                    }
+                    else { goodinput = false; }
+                }
+
+            } while (!goodinput);
+
+            DisplayContinuePrompt();
+        }
+
+        static void ThemeDisplayCreateTheme(ThemeManager thememanager)
+        {
+            DisplayScreenHeader("Theme Manager");
+            string name = "";
+            ConsoleColor foreground;
+            ConsoleColor background;
+
+
+            Console.WriteLine("Enter a name for your new theme:");
+            name = Console.ReadLine();
+
+            Console.WriteLine("\nEnter one of the following colors for the text color");
+            foreach(ConsoleColor color in Enum.GetValues(typeof(ConsoleColor)))
+            { //Credit to Peter Mortensen of Stackoverflow
+                Console.Write(color + ", ");        
+            }
+            Console.WriteLine();
+            while(!Enum.TryParse(Console.ReadLine(), out foreground))
+            {
+                Console.WriteLine("That's not a color try again.");
+            }
+
+
+            Console.WriteLine("\nEnter one of the following colors for the background color");
+            foreach (ConsoleColor color in Enum.GetValues(typeof(ConsoleColor)))
+            { //Credit to Peter Mortensen of Stackoverflow
+                Console.Write(color + ", ");
+            }
+            Console.WriteLine();
+            while (!Enum.TryParse(Console.ReadLine(), out background))
+            {
+                Console.WriteLine("That's not a color try again.");
+            }
+
+
+            Theme createdtheme = new Theme(name, foreground, background);
+            thememanager.WriteTheme(createdtheme);
+            thememanager.UpdateThemesList();
+
+            DisplayContinuePrompt();
+        }
+
+        static void ThemeDisplayEditTheme(ThemeManager thememanager)
+        {
+            DisplayScreenHeader("Theme Manager");
+            string name = "";
+            ConsoleColor foreground;
+            ConsoleColor background;
+            bool goodinput = false;
+
+            ThemeDisplayListTable(thememanager);
+            do
+            {
+                Console.WriteLine("Enter the name of the theme your chaning:");
+                name = Console.ReadLine();
+                foreach (Theme theme in thememanager.GetThemesList())
+                {
+                    if(theme.Name == name)
+                    {
+                        goodinput = true;
+                        break;
+                    }
+                }
+            } while (!goodinput);
+
+            Console.WriteLine("\nEnter one of the following colors for the new text color");
+            foreach (ConsoleColor color in Enum.GetValues(typeof(ConsoleColor)))
+            { //Credit to Peter Mortensen of Stackoverflow
+                Console.Write(color + ", ");
+            }
+            Console.WriteLine();
+            while (!Enum.TryParse(Console.ReadLine(), out foreground))
+            {
+                Console.WriteLine("That's not a color try again.");
+            }
+
+
+            Console.WriteLine("\nEnter one of the following colors for the new background color");
+            foreach (ConsoleColor color in Enum.GetValues(typeof(ConsoleColor)))
+            { //Credit to Peter Mortensen of Stackoverflow
+                Console.Write(color + ", ");
+            }
+            Console.WriteLine();
+            while (!Enum.TryParse(Console.ReadLine(), out background))
+            {
+                Console.WriteLine("That's not a color try again.");
+            }
+
+
+            Theme createdtheme = new Theme(name, foreground, background);
+            thememanager.WriteTheme(createdtheme);
+            thememanager.UpdateThemesList();
+
+
+            DisplayContinuePrompt();
+        }
+
+        static void ThemeDisplayListTable(ThemeManager thememanager)
+        {
+            Console.WriteLine("{0,10} | {1,-10} {2,-10}", "Name", "Text", "Background");
+            Console.WriteLine(" ----------+-----------------------");
+            foreach (Theme theme in thememanager.GetThemesList())
+            {
+                Console.WriteLine("{0,10} | {1,-10} {2,-10}", theme.Name, theme.ForegroundColor, theme.BackgroundColor);
+            }
+        }
+
+        #endregion
+
         #region USER INTERFACE
 
         /// <summary>
@@ -1161,5 +1364,149 @@ namespace Project_FinchControl
         }
 
         #endregion
+
+    }
+
+    public struct Theme
+    {
+
+        public Theme(string name, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
+        {
+            Name = name;
+            ForegroundColor = foregroundColor;
+            BackgroundColor = backgroundColor;
+        }
+
+        public string Name { get; set; }
+        public ConsoleColor ForegroundColor { get; set; }
+        public ConsoleColor BackgroundColor { get; set; }
+    }
+
+    class ThemeManager
+    {
+        private DirectoryInfo themeFolder;
+        private FileInfo settingsFile;
+        private List<Theme> themeList;
+        private Theme activeTheme;
+        private Theme defaultTheme;
+
+        public ThemeManager()
+        {
+            var appPath = new Uri(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath + "/Themes"; //Credit Stackoverflow User Sabuncu
+
+            themeFolder = new DirectoryInfo(appPath);
+            
+            if (!themeFolder.Exists) {
+                Console.WriteLine("Theme folder created");
+                themeFolder.Create();
+            }
+
+            settingsFile = new FileInfo(themeFolder + "/settings");
+            if (!settingsFile.Exists)
+            {
+                settingsFile.Create();
+            }
+
+            defaultTheme = new Theme("Default", ConsoleColor.White, ConsoleColor.Black);
+
+            themeList = new List<Theme>();
+            foreach (FileInfo fileInfo in themeFolder.EnumerateFiles())
+            {
+                if (fileInfo.Name.Contains(".fcth")) themeList.Add(ReadTheme(fileInfo));
+            }
+            
+            activeTheme = ReadSettings();
+            SetTheme(activeTheme);
+        }
+
+        public List<Theme> GetThemesList()
+        {
+            return themeList;
+        }
+
+        public void UpdateThemesList()
+        {
+            themeList = new List<Theme>();
+            foreach (FileInfo fileInfo in themeFolder.EnumerateFiles())
+            {
+                if (fileInfo.Name.Contains(".fcth")) themeList.Add(ReadTheme(fileInfo));
+            }
+        }
+
+        public void SetTheme(Theme theme)
+        {
+            Console.BackgroundColor = theme.BackgroundColor;
+            Console.ForegroundColor = theme.ForegroundColor;
+            activeTheme = theme;
+            WriteSetting();
+        } 
+
+        private Theme ReadTheme(FileInfo fileInfo)
+        {
+            Theme theme = defaultTheme;
+            string[] data;
+
+            try
+            {
+                data = File.ReadAllText(fileInfo.FullName).Split(",\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                
+                theme.Name = data[0];
+                if (Enum.TryParse(data[1], out ConsoleColor foreground)) theme.ForegroundColor = foreground;
+                if (Enum.TryParse(data[2], out ConsoleColor background)) theme.BackgroundColor = background;
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Error reading: {0}", fileInfo.Name);
+            }
+
+            return theme;
+        }
+
+        public void WriteTheme(Theme theme)
+        {
+            try
+            {
+                var fs = File.CreateText(themeFolder.Name + "/" + theme.Name + ".fcth");
+                fs.WriteLine(theme.Name + ',');
+                fs.WriteLine(theme.ForegroundColor.ToString() + ',');
+                fs.WriteLine(theme.BackgroundColor.ToString() + ',');
+                fs.Close();
+            } 
+            catch (Exception)
+            {
+                Console.WriteLine("Error writing: {0}", theme.Name);
+            }
+        }
+
+        private void WriteSetting()
+        {
+            try
+            {
+                var fs = File.CreateText(themeFolder.Name + "/settings");
+                fs.WriteLine(activeTheme.Name);
+                fs.Close();
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        private Theme ReadSettings()
+        {
+            try
+            {
+                var settingtheme = File.ReadAllText(settingsFile.FullName);
+                foreach(Theme theme in themeList)
+                {
+                    if ((theme.Name + "\r\n") == settingtheme) return theme;
+                }
+            }
+            catch(Exception)
+            {
+
+            }
+            return defaultTheme;
+        }
     }
 }
